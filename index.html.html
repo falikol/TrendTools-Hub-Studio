@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Professional Audio Studio Pro | TrendTools Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ff4757;
+            --bg: #050505;
+            --card: #0e0e0e;
+            --text: #ffffff;
+            --dim: #777;
+            --accent: #00ff88;
+            --border: #1a1a1a;
+            --plugin-bg: #151515;
+            --terminal-text: #00ff88;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body, html { height: 100vh; width: 100vw; overflow: hidden; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+
+        header { 
+            background: #000; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; 
+            border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        .logo-box { display: flex; align-items: center; gap: 10px; }
+        .logo { width: 28px; height: 28px; border-radius: 6px; }
+        header h1 { font-size: 0.85rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
+
+        .app-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .player-panel { background: var(--card); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .track-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(255,255,255,0.02); }
+        .track-info { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+
+        .waveform-box { width: 100%; height: 220px; background: #000; position: relative; border-top: 1px solid var(--border); overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; position: absolute; top: 0; left: 0; }
+        #seekbar { width: 100%; height: 100%; -webkit-appearance: none; background: transparent; position: absolute; top: 0; z-index: 10; cursor: pointer; }
+        #seekbar::-webkit-slider-thumb { -webkit-appearance: none; width: 2px; height: 220px; background: var(--primary); }
+
+        .controls-main { padding: 8px 20px; display: flex; align-items: center; justify-content: center; gap: 15px; background: #080808; }
+        .btn { border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; transition: 0.2s; }
+        .btn-play { width: 45px; height: 45px; background: var(--primary); font-size: 1.1rem; box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4); }
+        .btn-sub { width: 32px; height: 32px; background: #1a1a1a; border: 1px solid #252525; }
+        .btn-sub.active { color: var(--accent); border-color: var(--accent); background: rgba(0, 255, 136, 0.1); }
+        .btn-dl { background: var(--accent); color: #000; border-radius: 4px; padding: 6px 12px; font-size: 0.65rem; font-weight: 900; }
+
+        .fx-grid { 
+            flex: 1; 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 1px; 
+            background: var(--border); 
+            overflow-y: auto; 
+        }
+        .fx-card { 
+            background: var(--card); 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            overflow: hidden;
+            height: 100%; 
+        }
+        .fx-header { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+        .fx-header i { color: var(--primary); font-size: 0.75rem; }
+        .fx-header span { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--dim); }
+
+        .preset-container { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 3px; 
+            max-height: 120px; 
+            overflow-y: auto; 
+            padding-right: 2px;
+        }
+        .preset-container::-webkit-scrollbar { width: 3px; }
+        .preset-container::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        .opt-btn { background: #151515; padding: 5px 2px; font-size: 0.5rem; font-weight: 700; border-radius: 2px; color: #777; cursor: pointer; border: 1px solid transparent; text-align: center; }
+        .opt-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .benchmark-section { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 6px; border-radius: 4px; }
+        .benchmark-info { display: flex; justify-content: space-between; font-size: 0.52rem; font-weight: 900; margin-bottom: 2px; }
+        .benchmark-value { color: var(--accent); font-family: monospace; }
+        
+        .benchmark-bar-bg { width: 100%; height: 3px; background: #000; border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
+        .benchmark-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.1s ease-out; box-shadow: 0 0 5px var(--accent); }
+        
+        .slider-wrap { background: #080808; padding: 5px; border-radius: 4px; border: 1px solid #151515; margin-bottom: 3px; }
+        .slider-info { display: flex; justify-content: space-between; font-size: 0.55rem; color: #555; margin-bottom: 2px; font-weight: 700; text-transform: uppercase; }
+        input[type="range"] { width: 100%; accent-color: var(--accent); height: 2px; cursor: pointer; }
+
+        .upload-label { background: var(--primary); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 900; cursor: pointer; }
+        
+        .logic-tag { flex: 1; font-size: 0.45rem; padding: 2px; text-align: center; border-radius: 2px; background: #151515; color: #444; font-weight: 900; text-transform: uppercase; border: 1px solid #222; }
+        .logic-tag.active { color: var(--accent); border-color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+
+        footer { 
+            flex-shrink: 0; background: #000; padding: 12px 20px; border-top: 1px solid var(--border); 
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .footer-links { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .footer-links a { 
+            color: #555; text-decoration: none; font-size: 0.55rem; font-weight: 800; 
+            text-transform: uppercase; transition: 0.2s; 
+        }
+        .footer-links a:hover { color: var(--primary); }
+        .copy { font-size: 0.55rem; color: #333; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+        @media (max-width: 800px) {
+            .fx-grid { grid-template-columns: 1fr; }
+            .fx-card { height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-box">
+            <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgbpD2_Jg2pm2vuViK02J13HLpZJ_P5gvtVemCusBZzOzBHmG2nsDu4LhJp0dCO77vBRkuDSBA3hQOpDyyqaU1HlC935wy2d3crQgpD1CQDKY-LT5y9rpweXz-D1cuhEyKTj2-YiC9RJbgRFCVLfFMnULzqe4tFgt9opHtP6GNXaEvtims7MO8AD-qsfnPt=s32" class="logo">
+            <h1>TrendTools Hub Studio <span style="color:#444">v5.5 AUTO-SYNC</span></h1>
+        </div>
+        <input type="file" id="audioFile" accept="audio/*" hidden>
+        <label for="audioFile" class="upload-label"><i class="fas fa-microchip"></i> LOAD ENGINE</label>
+    </header>
+
+    <div class="app-container">
+        <div class="player-panel">
+            <div class="track-header">
+                <div id="trackName" class="track-info">SYSTEM: STANDBY</div>
+                <div id="timeInfo" style="font-size:0.55rem; color:#444">00:00 / 00:00</div>
+            </div>
+            <div class="waveform-box">
+                <canvas id="waveform-spectrum"></canvas>
+                <input type="range" id="seekbar" value="0" max="1000">
+            </div>
+            <div class="controls-main">
+                <button id="loopBtn" class="btn btn-sub" title="Loop"><i class="fas fa-sync-alt"></i></button>
+                <button id="playBtn" class="btn btn-play"><i class="fas fa-play"></i></button>
+                <button id="stopBtn" class="btn btn-sub" title="Restart"><i class="fas fa-redo"></i></button>
+                <button id="downloadBtn" class="btn btn-dl">EXPORT AI MASTER</button>
+            </div>
+        </div>
+
+        <div class="fx-grid">
+            <div class="fx-card">
+                <div class="fx-header"><i class="fas fa-wave-square"></i><span>Harmonic AI Presets (DECK AUTO)</span></div>
+                <div class="preset-container" id="harmonicPresets"></div>
+                
+                <div class="benchmark-section" style="margin-top: 5px;">
+                    <div class="benchmark-info"><span>AI SYNC LEVERAGE</span><span id="sync-val" class="benchmark-value">1.00x</span></div>
+                    <div class="benchmark-bar-bg"><div id="sync-bar" class="benchmark-bar-fill"></div></div>
+                    <div class="benchmark-info"><span>REAL PLAY TIME (SYNC)</span><span id="sync-time" class="benchmark-value">00:00:00</span></div>
+                    
+                    <div style="border-top: 1px solid #1a1a1a; margin-top: 6px; padding-top: 6px;">
+                        <div class="slider-wrap">
+                            <div class="slider-info">Bass Boost <span id="bassLabel" class="benchmark-value">0dB</span></div>
+                            <div class="benchmark-bar-bg"><div id="bassBar" class="benchmark-bar-fill"></div></div>
+                            <input type="range" id="bassRange" min="-12" max="20" value="0">
+                        </div>
+                        <div class="slider-wrap">
+                            <div class="slider-info">Treble <span id="trebleLabel" class="benchmark-value">0dB</span></div>
+                            <div class="benchmark-bar-bg"><div id="trebleBar" class="benchmark-bar-fill"></div></div>
+                            <input type="range" id="trebleRange" min="-12" max="20" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fx-card">
+                <div class="fx-header"><i class="fas fa-microphone-alt"></i><span>Voice & Output Levels</span></div>
+                <div class="preset-container" id="voicePresets"></div>
+                
+                <div class="benchmark-section" style="margin-top: 5px;">
+                    <div class="benchmark-info"><span>Input Signal Status</span><span id="input-status" class="benchmark-value">STABLE</span></div>
+                    <div class="benchmark-info"><span>Output Gain Level (DB)</span><span id="db-val" class="benchmark-value">-∞ dB</span></div>
+                    <div class="benchmark-bar-bg" style="height: 5px;"><div id="db-bar" class="benchmark-bar-fill" style="background: linear-gradient(90deg, #00ff88, #ffcc00, #ff4757);"></div></div>
+
+                    <div style="margin-top: 6px;">
+                        <div class="slider-wrap">
+                            <div class="slider-info">Auto Pan Depth <span id="panDepthLabel" class="benchmark-value">0%</span></div>
+                            <div class="benchmark-bar-bg"><div id="panDepthBar" class="benchmark-bar-fill"></div></div>
+                            <input type="range" id="panDepthRange" min="0" max="100" value="0">
+                        </div>
+                        <div class="slider-wrap">
+                            <div class="slider-info">Auto Pan Speed <span id="panSpeedLabel" class="benchmark-value">0.10 Hz</span></div>
+                            <div class="benchmark-bar-bg"><div id="panSpeedBar" class="benchmark-bar-fill"></div></div>
+                            <input type="range" id="panSpeedRange" min="0.01" max="5" step="0.05" value="0.1">
+                        </div>
+                    
+                        <!-- DEMO AUDIO (Sample Preview) -->
+                        <div class="benchmark-section" style="margin-top:14px;">
+                            <div class="fx-header" style="margin:0 0 10px 0;">
+                                <i class="fas fa-headphones"></i><span>Sample Audio Demo</span>
+                            </div>
+
+                            <div class="slider-wrap" style="padding:12px; border:1px solid rgba(255,255,255,0.08); border-radius:14px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                                    <button id="demoPlayBtn" class="btn-primary" type="button" style="min-width:150px;">
+                                        ▶ Play Sample
+                                    </button>
+
+                                    <label style="display:flex; align-items:center; gap:10px; user-select:none;">
+                                        <input id="demoToggle" type="checkbox" checked>
+                                        <span style="font-weight:600;">Demo ON</span>
+                                    </label>
+
+                                    <div style="flex:1; min-width:220px;">
+                                        <div class="slider-info">Preset Change Speed <span id="demoSpeedLabel" class="benchmark-value">2.0s</span></div>
+                                        <input type="range" id="demoSpeedRange" min="0.5" max="8" step="0.5" value="2.0">
+                                    </div>
+                                </div>
+
+                                <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                    <div style="opacity:0.85;">Now Playing Preset:</div>
+                                    <div id="demoNowPlaying" class="benchmark-value" style="text-align:right; flex:1;">—</div>
+                                </div>
+
+                                <div style="margin-top:8px; font-size:12px; opacity:0.65;">
+                                    Tip: Press Play, then watch Harmonic + Voice presets auto-switch while audio loops.
+                                </div>
+                            </div>
+
+                            <audio id="demoAudio" preload="auto" loop playsinline
+                                   controlslist="nodownload noplaybackrate"
+                                   style="display:none;"></audio>
+                        </div>
+                        <!-- /DEMO AUDIO -->
+</div>
+                </div>
+            </div>
+
+            <div class="fx-card">
+                <div class="fx-header"><i class="fas fa-cog"></i><span>Advanced Engine Settings</span></div>
+                <div class="benchmark-section">
+                    <div class="slider-wrap">
+                        <div class="slider-info">Resonance Freq <span id="resFreqLabel" class="benchmark-value">500 Hz</span></div>
+                        <div class="benchmark-bar-bg"><div id="resFreqBar" class="benchmark-bar-fill"></div></div>
+                        <input type="range" id="resFreqRange" min="20" max="10000" step="10" value="500">
+                    </div>
+                    <div class="slider-wrap">
+                        <div class="slider-info">Resonance Q <span id="resQLabel" class="benchmark-value">1.0</span></div>
+                        <div class="benchmark-bar-bg"><div id="resQBar" class="benchmark-bar-fill"></div></div>
+                        <input type="range" id="resQRange" min="0.1" max="10" step="0.1" value="1">
+                    </div>
+                    <div class="slider-wrap">
+                        <div class="slider-info">Fine Pitch Adjust <span id="finePitchLabel" class="benchmark-value">0 cents</span></div>
+                        <div class="benchmark-bar-bg"><div id="finePitchBar" class="benchmark-bar-fill"></div></div>
+                        <input type="range" id="finePitchRange" min="-100" max="100" step="1" value="0">
+                    </div>
+                    
+                    <div style="display: flex; gap: 4px; margin-top: 6px;">
+                        <span id="log-phase" class="logic-tag">Sync</span>
+                        <span id="log-harm" class="logic-tag">Stable</span>
+                        <span id="log-over" class="logic-tag">Limit</span>
+                    </div>
+                    
+                    <div class="benchmark-info" style="margin-top: 8px;"><span>Headroom Status</span><span id="beat-acc" class="benchmark-value">CLEAN</span></div>
+                    <div class="benchmark-bar-bg"><div id="beat-bar" class="benchmark-bar-fill"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://trendtoolshub.blogspot.com/p/about-us.html" target="_blank">About Us</a>
+            <a href="https://trendtoolshub.blogspot.com/p/contact-us_13.html" target="_blank">Contact</a>
+            <a href="https://trendtoolshub.blogspot.com/p/privacy-policy.html" target="_blank">Privacy Policy</a>
+            <a href="https://trendtoolshub.blogspot.com/p/terms-conditions.html" target="_blank">Terms</a>
+            <a href="https://trendtoolshub.blogspot.com/p/disclaimer.html" target="_blank">Disclaimer</a>
+        </div>
+        <div class="copy">© 2025 TrendTools Hub | Professional Audio Studio v5.5</div>
+    </footer>
+
+    <script>
+        const el = (id) => document.getElementById(id);
+        
+        const harmonicPresets = [
+            "Studio Clean", "Power Punch", "Warm Analog", "Clear Vocal", 
+            "EDM Blast", "Rock Hard", "Pop Bright", "Deep Bass", 
+            "Crystal High", "Acoustic", "Jazz Smooth", "HipHop Core", 
+            "Nightcore", "Slowed AI", "Sub Ultra", "Cinema Wide", 
+            "Vintage 80s", "Modern Trap", "LoFi Chill", "Elite Master"
+        ];
+        
+        const voicePresets = ["Neutral", "Titan Deep", "Chipmunk", "Cyber Drone", "Lo-Fi Radio", "Spatial"];
+
+        let audioCtx, source, buffer, isPlaying = false, isLooping = false, startTime = 0, pausedAt = 0;
+        let mainGain, analyzer, bassNode, trebleNode, panner, resonanceNode, limiter;
+        let currentSpeed = 1.0;
+
+        async function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                mainGain = audioCtx.createGain(); mainGain.gain.value = 0.8; 
+                limiter = audioCtx.createDynamicsCompressor();
+                limiter.threshold.setValueAtTime(-1.0, audioCtx.currentTime); 
+                analyzer = audioCtx.createAnalyser(); analyzer.fftSize = 256;
+                bassNode = audioCtx.createBiquadFilter(); bassNode.type = "lowshelf"; bassNode.frequency.value = 200;
+                trebleNode = audioCtx.createBiquadFilter(); trebleNode.type = "highshelf"; trebleNode.frequency.value = 3000;
+                resonanceNode = audioCtx.createBiquadFilter(); resonanceNode.type = "peaking";
+                panner = audioCtx.createStereoPanner();
+            }
+        }
+
+        function setupUI() {
+            const hCont = el('harmonicPresets');
+            harmonicPresets.forEach(name => {
+                const b = document.createElement('button'); b.className = 'opt-btn'; b.textContent = name;
+                b.onclick = () => { 
+                    document.querySelectorAll('#harmonicPresets .opt-btn').forEach(btn => btn.classList.remove('active')); 
+                    b.classList.add('active'); 
+                    applyPreset(name); 
+                };
+                hCont.appendChild(b);
+            });
+            const vCont = el('voicePresets');
+            voicePresets.forEach(name => {
+                const b = document.createElement('button'); b.className = 'opt-btn'; b.textContent = name;
+                b.onclick = () => { 
+                    document.querySelectorAll('#voicePresets .opt-btn').forEach(btn => btn.classList.remove('active')); 
+                    b.classList.add('active'); 
+                    applyVoice(name); 
+                };
+                vCont.appendChild(b);
+            });
+
+            el('bassRange').oninput = (e) => {
+                const val = e.target.value;
+                el('bassLabel').textContent = val + "dB";
+                el('bassBar').style.width = ((parseInt(val) + 12) / 32 * 100) + "%";
+                if(isPlaying) bassNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.1);
+            };
+            el('trebleRange').oninput = (e) => {
+                const val = e.target.value;
+                el('trebleLabel').textContent = val + "dB";
+                el('trebleBar').style.width = ((parseInt(val) + 12) / 32 * 100) + "%";
+                if(isPlaying) trebleNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.1);
+            };
+            el('panDepthRange').oninput = (e) => {
+                el('panDepthLabel').textContent = e.target.value + "%";
+                el('panDepthBar').style.width = e.target.value + "%";
+            };
+            el('panSpeedRange').oninput = (e) => {
+                el('panSpeedLabel').textContent = e.target.value + " Hz";
+                el('panSpeedBar').style.width = (parseFloat(e.target.value) / 5 * 100) + "%";
+            };
+            el('resFreqRange').oninput = (e) => {
+                el('resFreqLabel').textContent = e.target.value + " Hz";
+                el('resFreqBar').style.width = (parseInt(e.target.value) / 10000 * 100) + "%";
+                if(isPlaying) resonanceNode.frequency.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.1);
+            };
+            el('resQRange').oninput = (e) => {
+                el('resQLabel').textContent = e.target.value;
+                el('resQBar').style.width = (parseFloat(e.target.value) / 10 * 100) + "%";
+                if(isPlaying) resonanceNode.Q.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.1);
+            };
+            el('finePitchRange').oninput = (e) => {
+                el('finePitchLabel').textContent = e.target.value + " cents";
+                el('finePitchBar').style.width = ((parseInt(e.target.value) + 100) / 200 * 100) + "%";
+                if(isPlaying) source.detune.setTargetAtTime(parseInt(el('finePitchRange').value), audioCtx.currentTime, 0.1);
+            };
+        }
+
+        function applyPreset(name) {
+            let b=0, t=0, s=1.0, g=0.8;
+            switch(name) {
+                case "Deep Bass": b=15; t=-2; break;
+                case "Sub Ultra": b=20; t=-5; s=0.95; break;
+                case "Nightcore": s=1.28; t=5; break;
+                case "Slowed AI": s=0.85; b=8; t=-2; break;
+                case "Elite Master": b=6; t=6; g=0.7; break;
+                case "Power Punch": b=10; t=4; g=0.6; break;
+                case "Crystal High": b=-5; t=15; break;
+                case "Modern Trap": b=12; t=8; break;
+                case "LoFi Chill": b=4; t=-8; s=0.92; break;
+                case "Vintage 80s": b=2; t=4; resonanceNode.Q.value=5; break;
+                default: b=0; t=0; s=1.0; g=0.8;
+            }
+            currentSpeed = s;
+            el('bassRange').value = b; el('bassRange').dispatchEvent(new Event('input'));
+            el('trebleRange').value = t; el('trebleRange').dispatchEvent(new Event('input'));
+            if(isPlaying) {
+                source.playbackRate.setTargetAtTime(s, audioCtx.currentTime, 0.1);
+                mainGain.gain.setTargetAtTime(g, audioCtx.currentTime, 0.1);
+            }
+            el('sync-val').textContent = s.toFixed(2) + "x";
+        }
+
+        function applyVoice(name) {
+            let d = 0;
+            if(name === "Titan Deep") d = -800;
+            else if(name === "Chipmunk") d = 1000;
+            else if(name === "Cyber Drone") d = -400;
+            if(isPlaying) source.detune.setTargetAtTime(d + parseInt(el('finePitchRange').value), audioCtx.currentTime, 0.1);
+        }
+
+        async function play() {
+            if(!buffer) return;
+            await initAudio();
+            if(isPlaying) stop();
+            
+            source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.playbackRate.value = currentSpeed;
+            source.loop = isLooping;
+            
+            source.connect(bassNode);
+            bassNode.connect(trebleNode);
+            trebleNode.connect(resonanceNode);
+            resonanceNode.connect(panner);
+            panner.connect(mainGain);
+            mainGain.connect(limiter);
+            limiter.connect(analyzer);
+            analyzer.connect(audioCtx.destination);
+
+            source.start(0, pausedAt);
+            startTime = audioCtx.currentTime - (pausedAt / currentSpeed);
+            isPlaying = true;
+            el('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+            drawWave();
+            updateLoop();
+        }
+
+        function stop() { if(source) { try{source.stop();}catch(e){} source.disconnect(); } isPlaying = false; el('playBtn').innerHTML = '<i class="fas fa-play"></i>'; }
+
+        function updateLoop() {
+            if(!isPlaying) return;
+            const data = new Uint8Array(analyzer.frequencyBinCount);
+            analyzer.getByteFrequencyData(data);
+
+            const depth = el('panDepthRange').value / 100;
+            const speed = el('panSpeedRange').value;
+            const panVal = Math.sin(audioCtx.currentTime * Math.PI * speed) * depth;
+            panner.pan.setTargetAtTime(panVal, audioCtx.currentTime, 0.05);
+
+            let sum = 0; for(let i=0; i<data.length; i++) sum += data[i];
+            let avg = sum / data.length;
+            let db = 20 * Math.log10(avg / 255);
+            if(isFinite(db)) {
+                el('db-val').textContent = db.toFixed(1) + " dB";
+                el('db-bar').style.width = Math.max(0, 100 + (db * 2)) + "%";
+            }
+
+            const elapsed = (audioCtx.currentTime - startTime) * currentSpeed;
+            if(!isLooping && elapsed >= buffer.duration) { stop(); pausedAt = 0; return; }
+            
+            const curTime = elapsed % buffer.duration;
+            el('timeInfo').textContent = `${fmt(curTime)} / ${fmt(buffer.duration)}`;
+            el('sync-time').textContent = fmtLong(curTime);
+            el('sync-bar').style.width = (curTime / buffer.duration * 100) + "%";
+            el('seekbar').value = (curTime / buffer.duration) * 1000;
+
+            el('log-phase').classList.toggle('active', avg > 50);
+            el('log-harm').classList.toggle('active', avg > 120);
+            el('log-over').classList.toggle('active', avg > 180);
+            el('beat-bar').style.width = (avg/255*100) + "%";
+
+            requestAnimationFrame(updateLoop);
+        }
+
+        function drawWave() {
+            const canvas = el('waveform-spectrum');
+            const ctx = canvas.getContext('2d');
+            const data = new Uint8Array(analyzer.frequencyBinCount);
+            
+            function render() {
+                if(!isPlaying) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawWatermark(ctx, canvas);
+                    return;
+                }
+                analyzer.getByteFrequencyData(data);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff8822';
+                const barWidth = canvas.width / data.length;
+                for(let i=0; i<data.length; i++) {
+                    let h = (data[i] / 255) * canvas.height;
+                    ctx.fillRect(i * barWidth, canvas.height - h, barWidth - 1, h);
+                }
+
+                drawWatermark(ctx, canvas);
+                requestAnimationFrame(render);
+            }
+
+            function drawWatermark(ctx, canvas) {
+                ctx.save();
+                ctx.font = 'bold 22px "Segoe UI", sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; 
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('TrendTools Hub', canvas.width / 2, canvas.height / 2);
+                ctx.restore();
+            }
+
+            render();
+        }
+
+        const fmt = s => { let m = Math.floor(s/60); let sec = Math.floor(s%60); return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
+        const fmtLong = s => { 
+            let h = Math.floor(s/3600); let m = Math.floor((s%3600)/60); let sec = Math.floor(s%60); 
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; 
+        }
+
+        el('audioFile').onchange = async (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            el('trackName').textContent = file.name.toUpperCase();
+            await initAudio();
+            buffer = await audioCtx.decodeAudioData(await file.arrayBuffer());
+            play();
+        };
+
+        el('playBtn').onclick = () => isPlaying ? (pausedAt = (audioCtx.currentTime - startTime) * currentSpeed % buffer.duration, stop()) : play();
+        el('loopBtn').onclick = () => { isLooping = !isLooping; el('loopBtn').classList.toggle('active', isLooping); if(source) source.loop = isLooping; };
+        el('stopBtn').onclick = () => { stop(); pausedAt = 0; play(); };
+        el('seekbar').oninput = (e) => { if(buffer) { pausedAt = (e.target.value / 1000) * buffer.duration; if(isPlaying) play(); } };
+
+        el('downloadBtn').onclick = async () => {
+            if (!buffer) return;
+            el('downloadBtn').textContent = "RENDERING...";
+            el('downloadBtn').disabled = true;
+
+            const offlineCtx = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+            
+            const offlineSource = offlineCtx.createBufferSource();
+            offlineSource.buffer = buffer;
+            offlineSource.playbackRate.value = currentSpeed;
+            offlineSource.detune.value = parseInt(el('finePitchRange').value);
+
+            const activeVoice = document.querySelector('#voicePresets .opt-btn.active')?.textContent;
+            if(activeVoice === "Titan Deep") offlineSource.detune.value -= 800;
+            else if(activeVoice === "Chipmunk") offlineSource.detune.value += 1000;
+            else if(activeVoice === "Cyber Drone") offlineSource.detune.value -= 400;
+
+            const offBass = offlineCtx.createBiquadFilter(); 
+            offBass.type = "lowshelf"; offBass.frequency.value = 200;
+            offBass.gain.value = parseFloat(el('bassRange').value);
+
+            const offTreble = offlineCtx.createBiquadFilter(); 
+            offTreble.type = "highshelf"; offTreble.frequency.value = 3000;
+            offTreble.gain.value = parseFloat(el('trebleRange').value);
+
+            const offRes = offlineCtx.createBiquadFilter();
+            offRes.type = "peaking";
+            offRes.frequency.value = parseFloat(el('resFreqRange').value);
+            offRes.Q.value = parseFloat(el('resQRange').value);
+
+            const offGain = offlineCtx.createGain();
+            offGain.gain.value = mainGain.gain.value;
+
+            offlineSource.connect(offBass);
+            offBass.connect(offTreble);
+            offTreble.connect(offRes);
+            offRes.connect(offGain);
+            offGain.connect(offlineCtx.destination);
+
+            offlineSource.start(0);
+            
+            const renderedBuffer = await offlineCtx.startRendering();
+            const wavBlob = bufferToWav(renderedBuffer);
+            const url = URL.createObjectURL(wavBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `TrendTools_Master_${Date.now()}.wav`;
+            a.click();
+
+            el('downloadBtn').textContent = "EXPORT AI MASTER";
+            el('downloadBtn').disabled = false;
+        };
+
+        function bufferToWav(abuffer) {
+            let numOfChan = abuffer.numberOfChannels,
+                length = abuffer.length * numOfChan * 2 + 44,
+                buffer = new ArrayBuffer(length),
+                view = new DataView(buffer),
+                channels = [], i, sample,
+                offset = 0,
+                pos = 0;
+
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952);                         
+            setUint32(length - 8);                         
+            setUint32(0x45564157);                         
+            setUint32(0x20746d66);                         
+            setUint32(16);                                 
+            setUint16(1);                                  
+            setUint16(numOfChan);
+            setUint32(abuffer.sampleRate);
+            setUint32(abuffer.sampleRate * 2 * numOfChan);
+            setUint16(numOfChan * 2);
+            setUint16(16);
+            setUint32(0x61746164);                         
+            setUint32(length - pos - 4);                   
+
+            for(i = 0; i < abuffer.numberOfChannels; i++)
+                channels.push(abuffer.getChannelData(i));
+
+            while(pos < length) {
+                for(i = 0; i < numOfChan; i++) {             
+                    sample = Math.max(-1, Math.min(1, channels[i][offset])); 
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0; 
+                    view.setInt16(pos, sample, true);          
+                    pos += 2;
+                }
+                offset++;                                     
+            }
+            return new Blob([buffer], {type: "audio/wav"});
+        }
+        
+        window.onload = setupUI;
+    
+        // =========================
+        // DEMO AUDIO + PRESET PREVIEW
+        // =========================
+        let demoAudioEl, demoMediaSource;
+        let demoIsPlaying = false;
+        let demoTickTimer = null;
+        let demoPanTimer = null;
+        let demoHIndex = 0;
+        let demoVIndex = 0;
+
+        function demoSetNowPlaying(text) {
+            const np = el('demoNowPlaying');
+            if (np) np.textContent = text || "—";
+        }
+
+        function demoClickPreset(containerId, index) {
+            const btns = Array.from(document.querySelectorAll(`#${containerId} .opt-btn`));
+            if (!btns.length) return null;
+            const safeIndex = ((index % btns.length) + btns.length) % btns.length;
+            btns[safeIndex].click();
+            return btns[safeIndex].textContent;
+        }
+
+        function demoStopTimers() {
+            if (demoTickTimer) { clearInterval(demoTickTimer); demoTickTimer = null; }
+            if (demoPanTimer) { clearInterval(demoPanTimer); demoPanTimer = null; }
+        }
+
+        function demoStartPresetCycling() {
+            demoStopTimers();
+            const toggle = el('demoToggle');
+            if (!toggle || !toggle.checked) return;
+
+            const speed = parseFloat(el('demoSpeedRange')?.value || "2.0") * 1000;
+
+            demoTickTimer = setInterval(() => {
+                const hName = demoClickPreset("harmonicPresets", demoHIndex++);
+                const vName = demoClickPreset("voicePresets", demoVIndex++);
+                demoSetNowPlaying(`${hName || "—"} | ${vName || "—"}`);
+            }, speed);
+        }
+
+        function demoStartAutoPan() {
+            // Smooth pan based on existing UI sliders (Pan Depth + Pan Speed)
+            demoPanTimer = setInterval(() => {
+                if (!audioCtx || !panner) return;
+
+                const depthPct = parseFloat(el('panDepthRange')?.value || "30"); // 0..100
+                const speedHz = parseFloat(el('panSpeedRange')?.value || "0.1"); // Hz
+                const depth = Math.min(1, Math.max(0, depthPct / 100));
+
+                const t = audioCtx.currentTime;
+                const pan = Math.sin(2 * Math.PI * speedHz * t) * depth;
+
+                // Slight smoothing
+                panner.pan.setTargetAtTime(pan, audioCtx.currentTime, 0.05);
+            }, 50);
+        }
+
+        async function demoEnsureAudioGraph() {
+            initAudio();
+            if (!demoAudioEl) {
+                demoAudioEl = el('demoAudio');
+                if (!demoAudioEl) return;
+                demoAudioEl.src = "sample.mp3";
+                demoAudioEl.addEventListener("contextmenu", (e) => e.preventDefault());
+            }
+
+            // Build the audio graph once
+            if (!demoMediaSource) {
+                demoMediaSource = audioCtx.createMediaElementSource(demoAudioEl);
+
+                // Connect: source -> EQ -> resonance -> panner -> limiter -> mainGain -> analyzer -> speakers
+                demoMediaSource
+                    .connect(bassNode)
+                    .connect(trebleNode)
+                    .connect(resonanceNode)
+                    .connect(panner)
+                    .connect(limiter)
+                    .connect(mainGain)
+                    .connect(analyzer)
+                    .connect(audioCtx.destination);
+            }
+        }
+
+        async function demoTogglePlay() {
+            const btn = el('demoPlayBtn');
+            await demoEnsureAudioGraph();
+
+            if (!demoAudioEl) return;
+
+            // iOS/Chrome autoplay policies require user gesture:
+            if (audioCtx && audioCtx.state === "suspended") {
+                await audioCtx.resume();
+            }
+
+            if (!demoIsPlaying) {
+                await demoAudioEl.play();
+                demoIsPlaying = true;
+                if (btn) btn.textContent = "⏸ Pause Sample";
+
+                demoStartPresetCycling();
+                demoStartAutoPan();
+            } else {
+                demoAudioEl.pause();
+                demoIsPlaying = false;
+                if (btn) btn.textContent = "▶ Play Sample";
+                demoStopTimers();
+                demoSetNowPlaying("—");
+            }
+        }
+
+        function demoInitUI() {
+            const playBtn = el('demoPlayBtn');
+            if (playBtn) playBtn.addEventListener("click", demoTogglePlay);
+
+            const speed = el('demoSpeedRange');
+            if (speed) {
+                const updateLabel = () => {
+                    el('demoSpeedLabel').textContent = `${parseFloat(speed.value).toFixed(1)}s`;
+                    if (demoIsPlaying) demoStartPresetCycling();
+                };
+                speed.addEventListener("input", updateLabel);
+                updateLabel();
+            }
+
+            const toggle = el('demoToggle');
+            if (toggle) {
+                toggle.addEventListener("change", () => {
+                    if (!demoIsPlaying) return;
+                    if (toggle.checked) demoStartPresetCycling();
+                    else {
+                        demoStopTimers();
+                        demoSetNowPlaying("—");
+                    }
+                });
+            }
+        }
+
+    </script>
+</body>
+</html>
