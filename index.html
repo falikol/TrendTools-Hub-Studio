@@ -757,5 +757,54 @@
         }
 
     </script>
+    <script>
+  // ✅ HARD FIX: Ensure demo audio plays on GitHub Pages (Chrome/Edge autoplay policy safe)
+  (function () {
+    const demoBtn = document.querySelector('button[data-demo-play], #demoPlayBtn, .demo-play-btn, button:has(span)');
+    const demoSection = document.querySelector('#sample-audio-demo, .sample-audio-demo, [data-sample-demo]');
+
+    // Fallback: find "Play Sample" button by text
+    const playBtn = Array.from(document.querySelectorAll("button"))
+      .find(b => (b.textContent || "").trim().toLowerCase().includes("play sample"));
+
+    const btn = playBtn || demoBtn;
+    if (!btn) return;
+
+    // Create audio element (hidden)
+    const audio = new Audio("sample.mp3");
+    audio.preload = "auto";
+    audio.loop = true;
+    audio.crossOrigin = "anonymous";
+    audio.playsInline = true;
+
+    async function forcePlay() {
+      try {
+        // Resume AudioContext if your app uses WebAudio
+        if (window.AudioContext || window.webkitAudioContext) {
+          if (!window.__demoAudioCtx) {
+            window.__demoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (window.__demoAudioCtx.state === "suspended") {
+            await window.__demoAudioCtx.resume();
+          }
+        }
+
+        audio.muted = false;
+        audio.volume = 1;
+        await audio.play();
+      } catch (err) {
+        console.warn("Demo audio play blocked:", err);
+        alert("Browser blocked audio. Please click LOAD ENGINE once, then try Play Sample again.");
+      }
+    }
+
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      forcePlay();
+    }, true);
+  })();
+</script>
+
 </body>
 </html>
