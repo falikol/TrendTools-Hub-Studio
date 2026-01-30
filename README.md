@@ -9,6 +9,10 @@ This project focuses on providing useful, beginner-friendly tools that help in c
 ## 🔗 Live Project
 👉 https://falikol.github.io/TrendTools-Hub-Studio/
 
+## 📸 Project Screenshot
+
+![TrendTools Hub Studio Interface](trendtools-hub-studio-ui.png)
+
 ## 🎵 Featured Tool: Copyright-Free Pro Music Generator
 
 One of the main tools showcased in this project is a **Copyright-Free Pro Music Generator**, specially designed for creators who need safe background music for:
@@ -20,7 +24,7 @@ One of the main tools showcased in this project is a **Copyright-Free Pro Music 
 
 ## 📖 Full Project Explanation (Blog)
 The complete explanation and data of this project are available on my blog:
-👉 https://trendtoolshub.blogspot.com/2026/01/copyright-free-pro-music-generator-trendstool-hub_01056149124.html
+👉 https://trendtoolshub.blogspot.com/2026/01/copyright-free-pro-music-generator-trendtoolshub.html
 
 ## 🚀 Key Features
 - 100% copyright-free music concept
