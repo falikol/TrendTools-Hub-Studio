@@ -11,7 +11,7 @@ This project focuses on providing useful, beginner-friendly tools that help in c
 
 ## 📸 Project Screenshot
 
-![TrendTools Hub Studio Interface](trendtools-hub-studio-ui.png)
+![TrendTools Hub Studio Interface](trendtools-hub-studio-ui.png.png)
 
 ## 🎵 Featured Tool: Copyright-Free Pro Music Generator
 
