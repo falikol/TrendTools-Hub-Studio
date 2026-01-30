@@ -6,8 +6,15 @@ TrendTools Hub Studio is a creative web-based platform designed to showcase adva
 
 This project focuses on providing useful, beginner-friendly tools that help in content creation and trend-based research.
 
+---
+
 ## 🔗 Live Project
-👉 https://falikol.github.io/TrendTools-Hub-Studio/
+👉 https://youtu.be/InBBt2F5GyU
+👉 https://youtu.be/gwnKefyxjbQ
+👉 https://youtu.be/Opoxy6d8dvk
+👉 https://youtu.be/UDjNfx7_SHw
+
+---
 
 ## 📸 Project Screenshot
 
