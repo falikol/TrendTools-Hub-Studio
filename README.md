@@ -7,7 +7,7 @@ TrendTools Hub Studio is a creative web-based platform designed to showcase adva
 This project focuses on providing useful, beginner-friendly tools that help in content creation and trend-based research.
 
 ## 🔗 Live Project
-👉 https://falikol.github.io/pro-music-generator/
+👉 https://falikol.github.io/TrendTools-Hub-Studio/
 
 ## 🎵 Featured Tool: Copyright-Free Pro Music Generator
 
